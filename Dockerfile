@@ -1,6 +1,7 @@
-FROM python:3.9-slim
+FROM frolvlad/alpine-python-machinelearning
 WORKDIR /app
 COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
-CMD ["python", "app1.py"]
+ENTRYPOINT [ "python" ]
+CMD ["app1.py"]
