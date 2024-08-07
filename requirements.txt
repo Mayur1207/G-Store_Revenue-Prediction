@@ -4,5 +4,4 @@ itsdangerous
 scipy
 scikit-learn
 matplotlib
-gunicorn
-pickle
+
