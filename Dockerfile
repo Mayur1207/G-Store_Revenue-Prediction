@@ -15,6 +15,6 @@ RUN python --version
 RUN pip --version
 
 # Install Python dependencies and log the output
-RUN pip install --no-cache-dir -r requirements.txt || { echo 'Pip install failed'; exit 1; }
+RUN pip install -r requirements.txt || { echo 'Pip install failed'; exit 1; }
 
 CMD ["python", "app.py"]
