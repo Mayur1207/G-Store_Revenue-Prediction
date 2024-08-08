@@ -1,5 +1,5 @@
 
-FROM python:3.12-slim-buster
+FROM frolvlad/alpine-python-machinelearning
 WORKDIR /app
 COPY . /app
 
