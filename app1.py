@@ -2,7 +2,6 @@ from flask import Flask, request, render_template
 import pandas as pd
 import numpy as np
 import pickle
-import mysql.connector
 
 app = Flask(__name__)
 
@@ -31,15 +30,6 @@ def load_model_and_encoders():
     return model, encoders, feature_names
 
 model, encoders, feature_names = load_model_and_encoders()
-
-# Function to establish database connection
-def get_db_connection():
-    return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='Mayur@123',
-        database='project'
-    )
 
 # Route for the homepage
 @app.route('/', methods=['GET', 'POST'])
@@ -89,17 +79,6 @@ def index():
             predicted_revenue = np.exp(log_prediction[0])  # Using np.exp to revert the log transformation
             predicted_revenue = 1000000*(max(0, predicted_revenue))  # Convert to millions and ensure no negative values
             
-            # Save input and output to the database
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO predictions (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue)
-            )
-            conn.commit()
-            cursor.close()
-            conn.close()
-            
             return render_template('index.html', predicted_revenue=f"${predicted_revenue:.2f} ",
                                   countries=countries, continents=continents, browsers=browsers,
                                   subcontinents=subcontinents, operating_systems=operating_systems,
@@ -116,5 +95,4 @@ def index():
                            mediums=mediums)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000,debug=True)
-
+    app.run(host="0.0.0.0", port=5000, debug=True)
