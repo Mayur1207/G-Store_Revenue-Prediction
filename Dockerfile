@@ -16,4 +16,5 @@ RUN apt-get update && \
 
 # Copy the rest of the application code
 COPY . /app/
-CMD ["python", "app.py"]
+# Run Streamlit app
+CMD ["streamlit", "run", "app.py"]
