@@ -2,64 +2,16 @@ from flask import Flask, request, render_template
 import pandas as pd
 import numpy as np
 import pickle
+import mysql.connector
 
 app = Flask(__name__)
 
 # Define lists of options
-countries = ['Turkey', 'Australia', 'Spain', 'Indonesia', 'United Kingdom',
-       'Italy', 'Pakistan', 'Austria', 'Netherlands', 'India', 'France',
-       'Brazil', 'China', 'Singapore', 'Argentina', 'Poland', 'Germany',
-       'Canada', 'Thailand', 'Hungary', 'Malaysia', 'Denmark', 'Taiwan',
-       'Russia', 'Nigeria', 'Belgium', 'South Korea', 'Chile', 'Ireland',
-       'Philippines', 'Greece', 'Mexico', 'Montenegro', 'United States',
-       'Bangladesh', 'Japan', 'Slovenia', 'Czechia', 'Sweden',
-       'United Arab Emirates', 'Switzerland', 'Portugal', 'Peru',
-       'Hong Kong', 'Vietnam', 'Sri Lanka', 'Serbia', 'Norway', 'Romania',
-       'Kenya', 'Ukraine', 'Israel', 'Slovakia', 'Lithuania',
-       'Puerto Rico', 'Bosnia & Herzegovina', 'Croatia', 'South Africa',
-       'Paraguay', 'Others', 'Colombia', 'Uruguay', 'Algeria', 'Finland',
-       'Guatemala', 'Egypt', 'Malta', 'Bulgaria', 'New Zealand', 'Kuwait',
-       'Uzbekistan', 'Saudi Arabia', 'Cyprus', 'Estonia', 'Côte d’Ivoire',
-       'Morocco', 'Tunisia', 'Venezuela', 'Dominican Republic', 'Senegal',
-       'Costa Rica', 'Kazakhstan', 'Macedonia (FYROM)', 'Oman', 'Laos',
-       'Ethiopia', 'Panama', 'Belarus', 'Myanmar (Burma)', 'Moldova',
-       'Bahrain', 'Mongolia', 'Ghana', 'Albania', 'Kosovo', 'Georgia',
-       'Tanzania', 'Bolivia', 'Cambodia', 'Iraq', 'Jordan', 'Lebanon',
-       'Ecuador', 'Jamaica', 'Trinidad & Tobago', 'Libya', 'El Salvador',
-       'Azerbaijan', 'Nicaragua', 'Palestine', 'Réunion', 'Iceland',
-       'Armenia', 'Uganda', 'Qatar', 'Cameroon', 'Latvia',
-       'Congo - Kinshasa', 'Kyrgyzstan', 'Honduras', 'Nepal',
-       'Luxembourg', 'Sudan', 'Yemen', 'Macau']
-
-browsers = [
-    'Chrome', 'Safari', 'Firefox', 'Internet Explorer', 'Edge',
-    'Android Webview', 'Safari (in-app)', 'Opera Mini', 'Opera',
-    'UC Browser', 'YaBrowser', 'Coc Coc', 'Amazon Silk', 'Android Browser',
-    'Mozilla Compatible Agent', 'MRCHROME', 'Maxthon', 'BlackBerry',
-    'Nintendo Browser'
-]
-
-subcontinents = [
-    'Western Asia', 'Australasia', 'Southern Europe', 'Southeast Asia',
-    'Northern Europe', 'Southern Asia', 'Western Europe',
-    'South America', 'Eastern Asia', 'Eastern Europe',
-    'Northern America', 'Western Africa', 'Central America',
-    'Eastern Africa', '(not set)', 'Caribbean', 'Southern Africa',
-    'Northern Africa', 'Central Asia', 'Middle Africa', 'Melanesia',
-    'Micronesian Region', 'Polynesia'
-]
-
-operating_systems = [
-    'Windows', 'Macintosh', 'Linux', 'Android', 'iOS', 'Chrome OS',
-    'BlackBerry', '(not set)', 'Samsung', 'Windows Phone', 'Xbox',
-    'Nintendo Wii', 'Firefox OS', 'Nintendo WiiU', 'FreeBSD', 'Nokia',
-    'NTT DoCoMo', 'Nintendo 3DS', 'SunOS', 'OpenBSD'
-]
-
-mediums = [
-    'organic', 'referral', 'cpc', 'affiliate', 'cpm'
-]
-
+countries = ['Turkey', 'Australia', 'Spain', 'Indonesia', 'United Kingdom', 'Italy', 'Pakistan', 'Austria', 'Netherlands', 'India', 'France', 'Brazil', 'China', 'Singapore', 'Argentina', 'Poland', 'Germany', 'Canada', 'Thailand', 'Hungary', 'Malaysia', 'Denmark', 'Taiwan', 'Russia', 'Nigeria', 'Belgium', 'South Korea', 'Chile', 'Ireland', 'Philippines', 'Greece', 'Mexico', 'Montenegro', 'United States', 'Bangladesh', 'Japan', 'Slovenia', 'Czechia', 'Sweden', 'United Arab Emirates', 'Switzerland', 'Portugal', 'Peru', 'Hong Kong', 'Vietnam', 'Sri Lanka', 'Serbia', 'Norway', 'Romania', 'Kenya', 'Ukraine', 'Israel', 'Slovakia', 'Lithuania', 'Puerto Rico', 'Bosnia & Herzegovina', 'Croatia', 'South Africa', 'Paraguay', 'Others', 'Colombia', 'Uruguay', 'Algeria', 'Finland', 'Guatemala', 'Egypt', 'Malta', 'Bulgaria', 'New Zealand', 'Kuwait', 'Uzbekistan', 'Saudi Arabia', 'Cyprus', 'Estonia', 'Côte d’Ivoire', 'Morocco', 'Tunisia', 'Venezuela', 'Dominican Republic', 'Senegal', 'Costa Rica', 'Kazakhstan', 'Macedonia (FYROM)', 'Oman', 'Laos', 'Ethiopia', 'Panama', 'Belarus', 'Myanmar (Burma)', 'Moldova', 'Bahrain', 'Mongolia', 'Ghana', 'Albania', 'Kosovo', 'Georgia', 'Tanzania', 'Bolivia', 'Cambodia', 'Iraq', 'Jordan', 'Lebanon', 'Ecuador', 'Jamaica', 'Trinidad & Tobago', 'Libya', 'El Salvador', 'Azerbaijan', 'Nicaragua', 'Palestine', 'Réunion', 'Iceland', 'Armenia', 'Uganda', 'Qatar', 'Cameroon', 'Latvia', 'Congo - Kinshasa', 'Kyrgyzstan', 'Honduras', 'Nepal', 'Luxembourg', 'Sudan', 'Yemen', 'Macau']
+browsers = ['Chrome', 'Safari', 'Firefox', 'Internet Explorer', 'Edge', 'Android Webview', 'Safari (in-app)', 'Opera Mini', 'Opera', 'UC Browser', 'YaBrowser', 'Coc Coc', 'Amazon Silk', 'Android Browser', 'Mozilla Compatible Agent', 'MRCHROME', 'Maxthon', 'BlackBerry', 'Nintendo Browser']
+subcontinents = ['Western Asia', 'Australasia', 'Southern Europe', 'Southeast Asia', 'Northern Europe', 'Southern Asia', 'Western Europe', 'South America', 'Eastern Asia', 'Eastern Europe', 'Northern America', 'Western Africa', 'Central America', 'Eastern Africa', '(not set)', 'Caribbean', 'Southern Africa', 'Northern Africa', 'Central Asia', 'Middle Africa', 'Melanesia', 'Micronesian Region', 'Polynesia']
+operating_systems = ['Windows', 'Macintosh', 'Linux', 'Android', 'iOS', 'Chrome OS', 'BlackBerry', '(not set)', 'Samsung', 'Windows Phone', 'Xbox', 'Nintendo Wii', 'Firefox OS', 'Nintendo WiiU', 'FreeBSD', 'Nokia', 'NTT DoCoMo', 'Nintendo 3DS', 'SunOS', 'OpenBSD']
+mediums = ['organic', 'referral', 'cpc', 'affiliate', 'cpm']
 continents = ['Asia', 'Oceania', 'Europe', 'Americas', 'Africa']
 
 # Load the model and encoders
@@ -79,6 +31,15 @@ def load_model_and_encoders():
     return model, encoders, feature_names
 
 model, encoders, feature_names = load_model_and_encoders()
+
+# Function to establish database connection
+def get_db_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='Mayur@123',
+        database='project'
+    )
 
 # Route for the homepage
 @app.route('/', methods=['GET', 'POST'])
@@ -126,8 +87,20 @@ def index():
             # Predict using the model
             log_prediction = model.predict(input_data)
             predicted_revenue = np.exp(log_prediction[0])  # Using np.exp to revert the log transformation
-            predicted_revenue = max(0, predicted_revenue)  # Ensure no negative values
-            return render_template('index.html', predicted_revenue=f"${predicted_revenue:.2f}",
+            predicted_revenue = 1000000*(max(0, predicted_revenue))  # Convert to millions and ensure no negative values
+            
+            # Save input and output to the database
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO predictions (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue)
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            return render_template('index.html', predicted_revenue=f"${predicted_revenue:.2f} ",
                                   countries=countries, continents=continents, browsers=browsers,
                                   subcontinents=subcontinents, operating_systems=operating_systems,
                                   mediums=mediums)

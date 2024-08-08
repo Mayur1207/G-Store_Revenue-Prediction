@@ -1,7 +1,9 @@
-FROM frolvlad/alpine-python-machinelearning
+
+FROM python:3.12-slim-buster
 WORKDIR /app
 COPY . /app
-RUN pip install -r requirements.txt
-EXPOSE 8080
-ENTRYPOINT [ "python" ]
-CMD ["app1.py"]
+
+RUN apt update -y
+
+RUN apt-get update && pip install -r requirements.txt
+CMD ["python3", "app1.py"]
