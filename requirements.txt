@@ -4,3 +4,5 @@ seaborn
 matplotlib
 scikit-learn
 Flask
+pyarrow
+mysql-connector-python
