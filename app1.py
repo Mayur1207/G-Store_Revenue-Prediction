@@ -79,7 +79,7 @@ def index():
             predicted_revenue = np.exp(log_prediction[0])  # Using np.exp to revert the log transformation
             predicted_revenue = 1000000*(max(0, predicted_revenue))  # Convert to millions and ensure no negative values
             
-            return render_template('index.html', predicted_revenue=f"${predicted_revenue:.2f} ",
+            return render_template('index.html', predicted_revenue=f"{predicted_revenue:.2f} ",
                                   countries=countries, continents=continents, browsers=browsers,
                                   subcontinents=subcontinents, operating_systems=operating_systems,
                                   mediums=mediums)

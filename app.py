@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-from sklearn.preprocessing import LabelEncoder
+import mysql.connector
+from mysql.connector import Error
 
 # Define lists of options
 countries = ['Turkey', 'Australia', 'Spain', 'Indonesia', 'United Kingdom',
@@ -79,6 +80,37 @@ def load_model_and_encoders():
 
 model, encoders, feature_names = load_model_and_encoders()
 
+# Connect to MySQL database
+def get_db_connection():
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Mayur@123',
+            database='project'
+        )
+        return connection
+    except Error as e:
+        st.error(f"Error: {str(e)}")
+        return None
+
+def save_prediction(hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue):
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO predictions (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue)
+            )
+            connection.commit()
+            cursor.close()
+            st.success("Prediction saved to database!")
+        except Error as e:
+            st.error(f"Database error: {str(e)}")
+        finally:
+            connection.close()
+
 # Streamlit UI
 st.set_page_config(page_title="Revenue Prediction", layout="wide")
 
@@ -148,8 +180,10 @@ if st.button("Predict"):
         # Predict using the model
         log_prediction = model.predict(input_data)
         # Convert the log-transformed prediction back to original scale
-        predicted_revenue = np.exp(log_prediction[0])  # Using np.exp to revert the log transformation
+        predicted_revenue = (1000000*np.exp(log_prediction[0]))  # Using np.exp to revert the log transformation
         predicted_revenue = max(0, predicted_revenue)  # Ensure no negative values
         st.success(f"Predicted Revenue: ${predicted_revenue:.2f}")
+        # Save the prediction to the database
+        save_prediction(hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue)
     except Exception as e:
         st.error(f"Error: {str(e)}")
