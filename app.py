@@ -182,7 +182,7 @@ if st.button("Predict"):
         # Convert the log-transformed prediction back to original scale
         predicted_revenue = (1000000*np.exp(log_prediction[0]))  # Using np.exp to revert the log transformation
         predicted_revenue = max(0, predicted_revenue)  # Ensure no negative values
-        st.success(f"Predicted Revenue: ${predicted_revenue:.2f}")
+        st.success(f"Predicted Revenue: {predicted_revenue:.2f}")
         # Save the prediction to the database
         save_prediction(hits, pageviews, visitNumber, country, continent, browser, subContinent, operatingSystem, medium, predicted_revenue)
     except Exception as e:
