@@ -1,7 +1,8 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
-name: Build and deploy container app to Azure Web App - revenuepred
+name: Build and deploy Python app to Azure Web App - revenuepred
 
 on:
   push:
@@ -11,41 +12,67 @@ on:
 
 jobs:
   build:
-    runs-on: 'ubuntu-latest'
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-    - name: Log in to registry
-      uses: docker/login-action@v2
-      with:
-        registry: https://revcont.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_778f565fa3c549e181bcdc90add8c9f1 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_4421b011bdc943ea9a92a0da932b46ec }}
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v3
-      with:
-        push: true
-        tags: revcont.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_778f565fa3c549e181bcdc90add8c9f1 }}/mltest:${{ github.sha }}
-        file: ./Dockerfile
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
+
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: |
+            release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'production'
+      name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
 
     steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'revenuepred'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_9007c25341cb45bfa1325f4c3681aee4 }}
-        images: 'revcont.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_778f565fa3c549e181bcdc90add8c9f1 }}/mltest:${{ github.sha }}'
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_6C7CE8268CF24824A763ECB9772494CD }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F61841DE2C85482FAB6449661AA23AFD }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_56704890E6BF448F9B348DF5706630AC }}
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'revenuepred'
+          slot-name: 'Production'
+          
